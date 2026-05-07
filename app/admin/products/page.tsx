@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import { Plus, Edit, Trash } from "lucide-react"
+import { Plus, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { DeleteProductButton } from "./delete-button"
 
 export default async function AdminProductsPage() {
   const products = await prisma.product.findMany({
@@ -62,12 +63,12 @@ export default async function AdminProductsPage() {
                   <TableCell>{product.category.name}</TableCell>
                   <TableCell>${product.price?.toFixed(2) || 'N/A'}</TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button variant="ghost" size="icon">
-                      <Edit className="h-4 w-4 text-muted-foreground" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Trash className="h-4 w-4 text-destructive" />
-                    </Button>
+                    <Link href={`/admin/products/${product.id}/edit`}>
+                      <Button variant="ghost" size="icon">
+                        <Edit className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </Link>
+                    <DeleteProductButton productId={product.id} productName={product.name} />
                   </TableCell>
                 </TableRow>
               ))
