@@ -1,18 +1,43 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { prisma } from '@/lib/prisma';
+import { redis } from '@/lib/redis';
 import { Card, CardContent } from '@/components/ui/card';
+import { CacheBanner } from '@/components/cache-banner';
+import type { Product } from '@prisma/client';
 
 export default async function Home() {
-  const products = await prisma.product.findMany({
-    orderBy: { createdAt: 'desc' }
-  });
+  const CACHE_KEY = 'all_products';
+  const startTime = Date.now();
+
+  // STEP 1: Try Redis first
+  const cachedData = await redis.get(CACHE_KEY);
+
+  let products: Product[];
+  let cacheSource: 'REDIS_CACHE' | 'DATABASE_AGGREGATION';
+
+  if (cachedData) {
+    // ⚡ CACHE HIT — data served from memory
+    products = JSON.parse(cachedData);
+    cacheSource = 'REDIS_CACHE';
+  } else {
+    // 🐢 CACHE MISS — fall back to Postgres
+    products = await prisma.product.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // STEP 2: Store in Redis for the next visitor (TTL: 30 minutes)
+    await redis.setex(CACHE_KEY, 1800, JSON.stringify(products));
+    cacheSource = 'DATABASE_AGGREGATION';
+  }
+
+  const responseTimeMs = Date.now() - startTime;
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-gray-50 font-sans p-8">
       
       {/* Hero Section */}
-      <main className="w-full max-w-5xl text-center space-y-8 bg-white p-12 rounded-2xl shadow-xl border border-gray-100 mb-12">
+      {/* <main className="w-full max-w-5xl text-center space-y-8 bg-white p-12 rounded-2xl shadow-xl border border-gray-100 mb-12">
         <div className="space-y-4">
           <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
             Enterprise Review Platform
@@ -31,7 +56,12 @@ export default async function Home() {
             <li>Submit a new review. The cache will invalidate and force a fresh fetch.</li>
           </ol>
         </div>
-      </main>
+      </main> */}
+
+      {/* THE EDUCATIONAL BANNER */}
+      <div className="w-full max-w-5xl mb-8">
+        <CacheBanner source={cacheSource} responseTimeMs={responseTimeMs} />
+      </div>
 
       {/* Product Grid */}
       <div className="w-full max-w-5xl">

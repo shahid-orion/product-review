@@ -24,7 +24,7 @@ export async function GET(
 
     if (cachedData) {
       // CACHE HIT! The data was found in Redis.
-      console.log('REDIS CACHE HIT!!!!!')
+      // console.log('REDIS CACHE HIT!!!!!')
       const profile: CachedProductProfile = JSON.parse(cachedData);
       
       // Update metadata to prove it came from Redis and calculate speed
@@ -36,7 +36,7 @@ export async function GET(
 
     // 3. CACHE MISS! Data wasn't in Redis. We must hit the databases.
 
-    console.log('REDIS CACHE MISS! Fetching from databases...')
+    // console.log('REDIS CACHE MISS! Fetching from databases...')
     // 3a. Fetch Product Data from Postgres via Prisma
     const product = await prisma.product.findUnique({
       where: { id: id }

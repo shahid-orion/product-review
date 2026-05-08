@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { redis } from '@/lib/redis';
 import { auth } from '@/lib/auth';
 
 export async function POST(request: Request) {
@@ -39,6 +40,9 @@ export async function POST(request: Request) {
         categoryId,
       }
     });
+
+    // Invalidate the home page product list cache
+    await redis.del('all_products');
 
     return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
 

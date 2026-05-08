@@ -27,7 +27,7 @@ async function deleteCloudinaryImage(imageUrl: string) {
   if (publicId) {
     try {
       const result = await cloudinary.uploader.destroy(publicId);
-      console.log(`Cloudinary image deleted: ${publicId}`, result);
+      // console.log(`Cloudinary image deleted: ${publicId}`, result);
     } catch (e) {
       console.error('Cloudinary delete failed for publicId:', publicId, e);
     }
@@ -64,9 +64,9 @@ export async function PUT(
     const newImageUrl = imageUrl || '';
 
     if (oldImageUrl && newImageUrl && oldImageUrl !== newImageUrl) {
-      console.log('Image changed! Deleting old Cloudinary image...');
-      console.log('  Old:', oldImageUrl);
-      console.log('  New:', newImageUrl);
+      // console.log('Image changed! Deleting old Cloudinary image...');
+      // console.log('  Old:', oldImageUrl);
+      // console.log('  New:', newImageUrl);
       await deleteCloudinaryImage(oldImageUrl);
     }
 
@@ -77,6 +77,7 @@ export async function PUT(
 
     // Invalidate Redis cache
     await redis.del(`product_profile:${id}`);
+    await redis.del('all_products');
 
     return NextResponse.json({ success: true, product: updated });
   } catch (error: any) {
@@ -112,7 +113,7 @@ export async function DELETE(
     // 3. Delete ALL reviews for this product from MongoDB
     const mongoDb = await getMongoDb();
     const deleteResult = await mongoDb.collection('reviews').deleteMany({ productId: id });
-    console.log(`Deleted ${deleteResult.deletedCount} reviews from MongoDB for product: ${id}`);
+    // console.log(`Deleted ${deleteResult.deletedCount} reviews from MongoDB for product: ${id}`);
 
     // 4. Delete the product from Postgres
     await prisma.product.delete({ where: { id } });
@@ -120,6 +121,7 @@ export async function DELETE(
     // 5. Clean up ALL Redis keys related to this product
     await redis.del(`product_profile:${id}`);
     await redis.del(`product:stats:${id}`);
+    await redis.del('all_products');
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
