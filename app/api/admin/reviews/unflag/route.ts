@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in POST /api/admin/reviews/unflag:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

@@ -1,9 +1,42 @@
 import { NextResponse } from 'next/server';
 import { getMongoDb } from '@/lib/db-mongo';
 import { redis } from '@/lib/redis';
+import { headers } from 'next/headers';
+
+const RATE_LIMIT_MAX = 5;        // max reviews per window
+const RATE_LIMIT_WINDOW = 3600;  // 1 hour in seconds
 
 export async function POST(request: Request) {
   try {
+    // --- Rate Limiting (Redis INCR + EXPIRE) ---
+    const headersList = await headers();
+    const ip =
+      headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+      headersList.get('x-real-ip') ??
+      'anonymous';
+    const rateLimitKey = `rate_limit:reviews:${ip}`;
+
+    const current = await redis.incr(rateLimitKey);
+    if (current === 1) {
+      // First request in window — set the TTL
+      await redis.expire(rateLimitKey, RATE_LIMIT_WINDOW);
+    }
+    if (current > RATE_LIMIT_MAX) {
+      const ttl = await redis.ttl(rateLimitKey);
+      return NextResponse.json(
+        { error: `Rate limit exceeded. You can submit up to ${RATE_LIMIT_MAX} reviews per hour. Try again in ${Math.ceil(ttl / 60)} minute(s).` },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(ttl),
+            'X-RateLimit-Limit': String(RATE_LIMIT_MAX),
+            'X-RateLimit-Remaining': '0',
+          },
+        }
+      );
+    }
+    // -----------------------------------------
+
     const body = await request.json();
     const { productId, userName, rating, comment } = body;
 

@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useState, useMemo, use } from 'react';
+import Link from 'next/link';
 import { CachedProductProfile } from '@/types';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Star, ShieldCheck, Zap, Truck } from 'lucide-react';
+import { Star, ShieldCheck, Zap, Truck, ArrowLeftRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { CacheBanner } from '@/components/cache-banner';
@@ -175,6 +176,13 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               <Button size="lg" className="w-full text-lg h-14 rounded-xl shadow-lg hover:shadow-xl transition-all">
                 Add to Cart
               </Button>
+              <Link
+                href={`/products/compare?a=${id}`}
+                className="mt-3 flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                <ArrowLeftRight className="w-4 h-4" />
+                Compare with another product
+              </Link>
             </div>
           </motion.div>
         </div>

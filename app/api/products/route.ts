@@ -3,6 +3,19 @@ import { prisma } from '@/lib/prisma';
 import { redis } from '@/lib/redis';
 import { auth } from '@/lib/auth';
 
+export async function GET() {
+  try {
+    const products = await prisma.product.findMany({
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, price: true, imageUrl: true, slug: true },
+    });
+    return NextResponse.json(products);
+  } catch (error) {
+    console.error('Error in GET /api/products:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     // 1. Auth & RBAC Check (Must be an Admin to create products)

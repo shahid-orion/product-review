@@ -6,12 +6,18 @@ export const authConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id
         token.role = user.role
+      }
+      // Fallback: NextAuth always sets token.sub to the user's id
+      if (!token.id && token.sub) {
+        token.id = token.sub
       }
       return token
     },
     async session({ session, token }) {
       if (token && session.user) {
+        session.user.id = token.id as string
         session.user.role = token.role as string
       }
       return session

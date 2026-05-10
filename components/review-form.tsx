@@ -52,7 +52,13 @@ export function ReviewForm({ productId, onSuccess }: ReviewFormProps) {
         onSuccess()
       } else {
         const data = await res.json()
-        toast.error(data.error || "Failed to submit review")
+        if (res.status === 429) {
+          toast.error(data.error || "Too many reviews. Please wait before submitting again.", {
+            duration: 6000,
+          })
+        } else {
+          toast.error(data.error || "Failed to submit review")
+        }
       }
     } catch (error) {
       toast.error('Failed to submit review')

@@ -18,32 +18,27 @@ function AnimatedCounter({ value }: { value: number }) {
 }
 
 export default function AdminDashboardPage() {
-  // Mock data for the dashboard stats
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalUsers: 0,
     totalReviews: 0,
-    activeSessions: 0,
+    pendingReviews: 0,
   })
 
-  // Simulate fetching data with a small delay for dramatic effect
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setStats({
-        totalProducts: 142,
-        totalUsers: 893,
-        totalReviews: 4521,
-        activeSessions: 56,
+    fetch('/api/admin/stats')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error) setStats(data)
       })
-    }, 400)
-    return () => clearTimeout(timer)
+      .catch((err) => console.error('Failed to load admin stats:', err))
   }, [])
 
   const statCards = [
     { title: "Total Products", value: stats.totalProducts, icon: Package, color: "text-blue-500", bg: "bg-blue-50" },
     { title: "Total Users", value: stats.totalUsers, icon: Users, color: "text-green-500", bg: "bg-green-50" },
     { title: "Total Reviews", value: stats.totalReviews, icon: Star, color: "text-yellow-500", bg: "bg-yellow-50" },
-    { title: "Active Sessions", value: stats.activeSessions, icon: TrendingUp, color: "text-purple-500", bg: "bg-purple-50" },
+    { title: "Pending Reviews", value: stats.pendingReviews, icon: TrendingUp, color: "text-purple-500", bg: "bg-purple-50" },
   ]
 
   return (

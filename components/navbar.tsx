@@ -4,17 +4,19 @@ import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { motion } from "motion/react"
-import { LogOut, User, ShieldCheck } from "lucide-react"
+import { LogOut, User, ShieldCheck, ArrowLeftRight } from "lucide-react"
 import { SearchBar } from "@/components/search-bar"
 
 export function Navbar() {
   const { data: session, status } = useSession()
+  // console.log('Navbar Session:', session);
+  // console.log('Session Status:', status);
 
   return (
     <motion.nav 
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50"
+      className="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-0 z-50"
     >
       <div className="container mx-auto max-w-6xl flex h-16 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2">
@@ -36,6 +38,10 @@ export function Navbar() {
           <Link href="/products" className="text-sm font-medium hover:text-primary transition-colors">
             Explore
           </Link>
+          <Link href="/products/compare" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
+            <ArrowLeftRight className="w-3.5 h-3.5" />
+            Compare
+          </Link>
           
           {status === "loading" ? (
             <div className="w-20 h-8 bg-muted animate-pulse rounded-md" />
@@ -50,10 +56,10 @@ export function Navbar() {
                 </Link>
               )}
               <div className="flex items-center gap-3 pl-4 border-l">
-                <span className="text-sm font-medium flex items-center gap-2">
+                <Link href={`/profile/${session.user.id}`} className="text-sm font-medium flex items-center gap-2 hover:text-primary transition-colors">
                   <User className="w-4 h-4" />
                   {session.user.name}
-                </span>
+                </Link>
                 <Button variant="ghost" size="sm" onClick={() => signOut()} className="text-muted-foreground hover:text-destructive">
                   <LogOut className="w-4 h-4" />
                 </Button>

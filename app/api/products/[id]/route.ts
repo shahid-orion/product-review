@@ -19,6 +19,18 @@ export async function GET(
   const cacheKey = `product_profile:${id}`;
 
   try {
+    // Track product views in a weekly sorted-set leaderboard
+    // Key format: trending:products:YYYY-WW  (e.g. trending:products:2026-19)
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const weekNum = Math.ceil(
+      ((now.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7
+    );
+    const weeklyKey = `trending:products:${now.getFullYear()}-${String(weekNum).padStart(2, '0')}`;
+    await redis.zincrby(weeklyKey, 1, id);
+    // TTL: 8 days so the key outlives the week it tracks
+    await redis.expire(weeklyKey, 8 * 24 * 60 * 60);
+
     // 2. TRY CACHE FIRST (The essence of Cache-Aside)
     const cachedData = await redis.get(cacheKey);
 
